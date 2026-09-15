@@ -6,6 +6,10 @@ class CustomUser(AbstractUser):
     """User-Model, das die E-Mail statt des Usernamens als Login-Feld nutzt."""
 
     email = models.EmailField(unique=True)
+    agb_accepted = models.BooleanField(default=False)
+    agb_accepted_at = models.DateTimeField(null=True, blank=True)
+    privacy_accepted = models.BooleanField(default=False)
+    privacy_accepted_at = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = "email"
     # zusätzlich zu USERNAME_FIELD + Passwort bei createsuperuser abgefragte Felder
