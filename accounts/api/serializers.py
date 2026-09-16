@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import serializers
 
 User = get_user_model()
@@ -54,6 +55,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Erstellt einen neuen Benutzer mit den validierten Daten."""
+        now = timezone.now()
+
         user = User.objects.create_user(
             email=validated_data["email"],
             username=validated_data["email"],
@@ -61,7 +64,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
             agb_accepted=validated_data["agb_accepted"],
+            agb_accepted_at=now,
             privacy_accepted=validated_data["privacy_accepted"],
+            privacy_accepted_at=now,
             is_active=False,
         )
         return user
