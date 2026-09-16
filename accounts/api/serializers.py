@@ -62,5 +62,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data["last_name"],
             agb_accepted=validated_data["agb_accepted"],
             privacy_accepted=validated_data["privacy_accepted"],
+            is_active=False,
         )
         return user
