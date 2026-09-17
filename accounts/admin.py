@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CustomUser
+from .models import CustomUser, EmailVerificationCode
 
 
 class CustomUserAdmin(admin.ModelAdmin):
@@ -25,4 +25,16 @@ class CustomUserAdmin(admin.ModelAdmin):
     )
 
 
+class EmailVerificationCodeAdmin(admin.ModelAdmin):
+    verbose_name = "E-Mail-Verifizierungscode"
+    list_display = (
+        "user",
+        "code",
+        "created_at",
+        "expires_at",
+    )
+    search_fields = ("user__email",)
+
+
+admin.site.register(EmailVerificationCode, EmailVerificationCodeAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
