@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
 
+from accounts.models import EmailVerificationCode
+
 User = get_user_model()
 
 
@@ -69,4 +71,37 @@ class RegisterSerializer(serializers.ModelSerializer):
             privacy_accepted_at=now,
             is_active=False,
         )
+        return user
+
+
+class EmailVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField()
+
+    def validate(self, attrs):
+        try:
+            user = User.objects.get(email=attrs["email"])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Bitte prüfe deine Eingabe")
+
+        try:
+            verificationCode = EmailVerificationCode.objects.filter(
+                user=user, code=attrs["code"]
+            ).latest("created_at")
+        except EmailVerificationCode.DoesNotExist:
+            raise serializers.ValidationError("Der Code ist ungültig.")
+
+        if verificationCode.expires_at <= timezone.now():
+            raise serializers.ValidationError("Der Code ist Abgelaufen")
+
+        attrs["user"] = user
+        attrs["verificationCode"] = verificationCode
+
+        return attrs
+
+    def save(self):
+        user = self.validated_data["user"]
+        user.is_active = True
+        user.save()
+        self.validated_data["verificationCode"].delete()
         return user

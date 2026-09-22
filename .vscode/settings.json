@@ -30,6 +30,11 @@
     "**/staticfiles": true
   },
 
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportIndexIssue": "none",
+    "reportOptionalSubscript": "none"
+  },
+
   "python.analysis.autoImportCompletions": true,
   "python.analysis.indexing": true,
   "python.analysis.packageIndexDepths": [
