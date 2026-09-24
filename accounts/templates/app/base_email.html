@@ -1,0 +1,168 @@
+<!doctype html>
+<html
+  lang="de"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>{% block title %}FindeSafe{% endblock %}</title>
+    <style>
+      body,
+      table,
+      td,
+      a {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+        border: 0;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100% !important;
+        background-color: #121010;
+      }
+      .wrapper {
+        background-color: #121010;
+        padding: 40px 0;
+        text-align: center;
+      }
+      .card {
+        margin: 0 auto;
+        background-color: #191614;
+        border: 1px solid #3a342e;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .header {
+        background-color: #211d1a;
+        padding: 28px 40px;
+        text-align: center;
+        border-bottom: 1px solid #3a342e;
+      }
+      .logo-mark {
+        display: block;
+        margin: 0 auto 8px auto;
+        width: 64px;
+        height: 64px;
+      }
+      .logo-text {
+        font-family: "Roboto", Arial, Helvetica, sans-serif;
+        color: #f3efe8;
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .content {
+        padding: 40px 40px 24px 40px;
+        text-align: center;
+      }
+      .title {
+        margin: 0 0 16px 0;
+        font-family: "Roboto", Arial, Helvetica, sans-serif;
+        color: #f3efe8;
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .text {
+        margin: 0 0 12px 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #b4aca0;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      .text:last-child {
+        margin-bottom: 0;
+      }
+      .code-row {
+        padding: 8px 40px 40px 40px;
+        text-align: center;
+      }
+      .code-box {
+        display: inline-block;
+        background-color: #7fbdae;
+        color: #121010;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 8px;
+        text-decoration: none;
+        padding: 16px 36px;
+        border-radius: 6px;
+      }
+      .button {
+        display: inline-block;
+        background-color: #7fbdae;
+        color: #121010;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        padding: 14px 36px;
+        border-radius: 6px;
+      }
+      .footer {
+        background-color: #211d1a;
+        padding: 20px 40px;
+        text-align: center;
+        border-top: 1px solid #3a342e;
+      }
+      .footer-text {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #736b60;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all">
+      {% block preheader %}{% endblock %}
+    </div>
+
+    <table width="100%" role="presentation" cellpadding="0" cellspacing="0" class="wrapper">
+      <tr>
+        <td>
+          <table width="480" role="presentation" cellpadding="0" cellspacing="0" class="card" align="center">
+            <tr>
+              <td class="header">
+                <img
+                  class="logo-mark"
+                  src="https://img.philippbiebert.de/findesafe.png"
+                  width="64"
+                  height="64"
+                  alt="FindeSafe Logo"
+                />
+                <span class="logo-text">FindeSafe</span>
+              </td>
+            </tr>
+            {% block content %}
+            {% endblock %}
+            <tr>
+              <td class="footer">
+                <p class="footer-text">
+                  {% block footer_note %}Falls du diese E-Mail nicht erwartet hast, ignoriere sie einfach.{% endblock %}<br />
+                  &copy; FindeSafe
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

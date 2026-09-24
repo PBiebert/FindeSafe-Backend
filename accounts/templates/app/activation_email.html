@@ -1,0 +1,67 @@
+{% extends "app/base_email.html" %}
+
+{% block title %}Account aktivieren{% endblock %}
+
+{% block preheader %}Dein Bestätigungscode für FindeSafe{% endblock %}
+
+{% block content %}
+<tr>
+  <td class="fluid-padding" style="padding: 40px 40px 24px 40px; text-align: center">
+    <h1
+      style="
+        margin: 0 0 16px 0;
+        font-family: Roboto, Arial, Helvetica, sans-serif;
+        color: #f3efe8;
+        font-size: 22px;
+        font-weight: 700;
+      "
+    >
+      Willkommen {{ user.first_name }} {{ user.last_name }}!
+    </h1>
+    <p
+      style="
+        margin: 0 0 12px 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #b4aca0;
+        font-size: 15px;
+        line-height: 1.6;
+      "
+    >
+      Schön, dass du dabei bist.
+    </p>
+    <p
+      style="
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #b4aca0;
+        font-size: 15px;
+        line-height: 1.6;
+      "
+    >
+      Um deinen Account zu aktivieren, gib bitte den folgenden Code in der
+      FindeSafe App ein:
+    </p>
+  </td>
+</tr>
+<tr>
+  <td class="fluid-padding" style="padding: 8px 40px 40px 40px; text-align: center">
+    <span
+      style="
+        display: inline-block;
+        background-color: #7fbdae;
+        color: #121010;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 8px;
+        padding: 16px 36px;
+        border-radius: 6px;
+      "
+    >
+      {{ activation_code }}
+    </span>
+  </td>
+</tr>
+{% endblock %}
+
+{% block footer_note %}Falls du dich nicht registriert hast, ignoriere diese E-Mail einfach.{% endblock %}
