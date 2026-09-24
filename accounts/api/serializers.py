@@ -85,14 +85,27 @@ class EmailVerificationSerializer(serializers.Serializer):
             raise serializers.ValidationError("Bitte prüfe deine Eingabe")
 
         try:
-            verificationCode = EmailVerificationCode.objects.filter(
-                user=user, code=attrs["code"]
-            ).latest("created_at")
+            verificationCode = EmailVerificationCode.objects.filter(user=user).latest(
+                "created_at"
+            )
         except EmailVerificationCode.DoesNotExist:
             raise serializers.ValidationError("Der Code ist ungültig.")
 
         if verificationCode.expires_at <= timezone.now():
+            verificationCode.delete()
             raise serializers.ValidationError("Der Code ist Abgelaufen")
+
+        if verificationCode.code != attrs["code"]:
+            verificationCode.attempts += 1
+            verificationCode.save(update_fields=["attempts"])
+
+            if verificationCode.attempts > 3:
+                verificationCode.delete()
+                raise serializers.ValidationError(
+                    "Zu viele Fehlversuche.\nBitte fordern Sie einen neuen Code an."
+                )
+
+            raise serializers.ValidationError("Der Code ist ungültig.")
 
         attrs["user"] = user
         attrs["verificationCode"] = verificationCode
@@ -102,6 +115,6 @@ class EmailVerificationSerializer(serializers.Serializer):
     def save(self):
         user = self.validated_data["user"]
         user.is_active = True
-        user.save()
+        user.save(update_fields=["is_active"])
         self.validated_data["verificationCode"].delete()
         return user

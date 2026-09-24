@@ -30,5 +30,13 @@ class EmailVerificationCode(models.Model):
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     code = models.CharField(max_length=6)
+    attempts = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
+
+    class Meta:
+        verbose_name = "E-Mail-Verifizierungscode"
+        verbose_name_plural = "E-Mail-Verifizierungscodes"
+
+    def __str__(self):
+        return f"{self.user.email} - Bestätigungscode"
