@@ -137,10 +137,41 @@ docker compose down
 docker compose down -v
 ```
 
-- Der Code wird beim Bauen ins Image kopiert. Nach Codeänderungen ist ein
-  `docker compose up --build` nötig.
+- Lokal bindet `docker-compose.override.yml` den Projektordner in die Container
+  ein (siehe [Codeänderungen ohne Neubau](#codeänderungen-ohne-neubau)). Ein
+  Neubau ist nur nach Änderungen an `requirements.txt` oder am Dockerfile nötig.
 - Die API ist im LAN erreichbar (Port 8000 wird veröffentlicht). Die LAN-IP
   muss dafür in `ALLOWED_HOSTS` in der `.env` stehen.
+
+### Codeänderungen ohne Neubau
+
+Die Datei `docker-compose.override.yml` liest Docker Compose bei `docker compose up`
+automatisch zusätzlich zur `docker-compose.yml`. Sie gilt **nur für die lokale
+Entwicklung**, in Produktion wird sie nicht verwendet:
+
+- Der Projektordner ist als Volume in `web` und `worker` eingebunden. Codeänderungen
+  (neue Views, Serializer usw.) sind sofort im Container sichtbar.
+- `web` startet gunicorn mit `--reload` und lädt bei Änderungen automatisch neu
+  (im Log erscheint `Booting worker with pid: ...`).
+- Der `worker` lädt nicht automatisch neu. Nach Änderungen an Jobs oder am
+  Mail-Code:
+
+  ```bash
+  docker compose restart worker
+  ```
+
+- Neue Migrationsdateien (`makemigrations`) landen direkt im Projektordner auf dem Rechner.
+- Ohne die Override-Datei starten (Code kommt dann aus dem Image, kein Reload,
+  wie in Produktion):
+
+  ```bash
+  docker compose -f docker-compose.yml up --build
+  ```
+
+Voraussetzungen: `backend.entrypoint.sh` muss auf dem Rechner ausführbar sein
+(`chmod +x backend.entrypoint.sh`), weil der Mount die Rechte des Image überdeckt.
+Auf Linux sollte die Benutzer-ID (`id -u`) `1000` sein, damit der Container
+Dateien im Projektordner schreiben darf.
 
 ### Logs und Status
 
@@ -241,6 +272,7 @@ Alle App-Routen liegen unter `/api/` (`core/urls.py` → `accounts/api/urls.py`)
 ├── backend.Dockerfile     # Image: Python, Abhängigkeiten, Code, Start als appuser
 ├── backend.entrypoint.sh  # Start: collectstatic, migrate, Superuser, dann gunicorn
 ├── docker-compose.yml     # Services: web, worker, db (PostgreSQL), redis
+├── docker-compose.override.yml  # nur lokal: Projektordner einbinden, gunicorn --reload
 ├── .dockerignore          # Was nicht ins Image kopiert wird (u. a. .env)
 ├── .env.template          # Vorlage der Umgebungsvariablen (Kopie: .env, nicht im Repo)
 ├── manage.py

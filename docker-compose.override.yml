@@ -1,0 +1,32 @@
+# Einstellungen nur für die lokale Entwicklung.
+# Docker Compose liest diese Datei bei "docker compose up" automatisch zusätzlich
+# zur docker-compose.yml und überschreibt bzw. ergänzt dort die Einträge.
+# Für die Produktion NICHT verwenden. Ohne diese Datei starten mit:
+#   docker compose -f docker-compose.yml up
+
+services:
+  web:
+    volumes:
+      # Projektordner in den Container einbinden: Codeänderungen auf dem Rechner
+      # sind sofort im Container sichtbar, ein Neubau des Images ist nicht nötig.
+      # Neue Migrationsdateien (makemigrations) landen so direkt auf dem Rechner.
+      - .:/app
+    # gunicorn mit --reload: Der Server startet bei Codeänderungen automatisch neu.
+    # Das erste Wort muss "gunicorn" bleiben, sonst führt backend.entrypoint.sh
+    # die Vorbereitung (collectstatic, migrate, Superuser) nicht aus.
+    command:
+      [
+        "gunicorn",
+        "core.wsgi:application",
+        "--bind",
+        "0.0.0.0:8000",
+        "--reload",
+        "--access-logfile",
+        "-",
+      ]
+
+  worker:
+    volumes:
+      # Gleicher Code wie bei web. Der Worker lädt Änderungen NICHT automatisch:
+      # nach Änderungen an Jobs/Mail-Code "docker compose restart worker" ausführen.
+      - .:/app

@@ -1,5 +1,7 @@
-# Schritt 2: Django-Webserver, RQ-Worker und Redis gemeinsam starten.
-# Die Datenbank (PostgreSQL) kommt in Schritt 4 dazu.
+# Alle Services des Backends: Django-Webserver (web), RQ-Worker (worker),
+# PostgreSQL (db) und Redis (redis). Diese Datei entspricht dem Stand für die
+# Produktion. Für die lokale Entwicklung liest Compose zusätzlich automatisch
+# die docker-compose.override.yml (Mount des Projektordners, gunicorn --reload).
 
 services:
   # Django-Anwendung (API)
