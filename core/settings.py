@@ -50,6 +50,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise liefert statische Dateien (Admin-CSS usw.) direkt aus, da
+    # gunicorn das nicht kann. Muss direkt nach der SecurityMiddleware stehen.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -81,10 +84,16 @@ WSGI_APPLICATION = "core.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+# PostgreSQL: Zugangsdaten kommen aus der .env. DB_HOST ist im Docker-Netzwerk
+# der Servicenamen der Datenbank (db), nicht localhost.
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST", "db"),
+        "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
 
@@ -124,6 +133,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = "static/"
+
+# Zielordner von "python manage.py collectstatic": Hier sammelt Django alle
+# statischen Dateien (Admin, DRF, django-rq), WhiteNoise liefert sie von dort aus.
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 # Email

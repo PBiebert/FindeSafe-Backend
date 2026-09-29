@@ -8,7 +8,8 @@
 
 ## Tech-Stack
 
-- Backend: Django, Django REST Framework, Python, SQLite(Lokale Entwicklung), PostgreSQL(zur Veröffentlichung), Redis, Docker
+- Backend: Django, Django REST Framework, Python, PostgreSQL (`psycopg`), Redis + Django RQ (Hintergrund-Jobs), gunicorn, WhiteNoise, Docker Compose
+- Das Projekt läuft ausschließlich in Docker (Services `web`, `worker`, `db`, `redis`), kein lokales `runserver` mehr.
 
 ## Konventionen
 
@@ -35,30 +36,58 @@
 ## Wiederkehrende Befehle
 
 ```bash
-# Setup
+# Abhängigkeiten (lokale .venv nur für Editor und pip freeze)
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-pip freeze > requirements.txt      # nach dem Hinzufügen/Aktualisieren einer Abhängigkeit
+pip freeze > requirements.txt      # nach dem Hinzufügen/Aktualisieren einer Abhängigkeit, danach Image neu bauen
 
-# Starten
-python manage.py runserver
-python manage.py runserver 0.0.0.0:8000   # um den Server von einem Handy/Gerät im selben LAN zu erreichen (LAN-IP in ALLOWED_HOSTS in der .env ergänzen)
+# Starten / Stoppen
+docker compose up --build          # alle Services bauen und starten (nach Codeänderungen nötig, Code liegt im Image)
+docker compose up -d --build       # im Hintergrund
+docker compose down                # stoppen, Daten im Volume postgres_data bleiben
+docker compose down -v             # stoppen und Datenbank löschen
+docker compose logs -f web         # Logs (auch: worker, db, redis)
+# LAN-Zugriff (Handy): Port 8000 ist veröffentlicht, LAN-IP in ALLOWED_HOSTS in der .env ergänzen
 
-# Datenbank
-python manage.py makemigrations
-python manage.py migrate
+# Datenbank (Container müssen laufen; sonst "docker compose run --rm web ..." statt "exec")
+docker compose exec web python manage.py makemigrations
+docker compose exec web python manage.py migrate
 
 # Tests (basieren auf unittest, nicht pytest)
-python manage.py test
-python manage.py test accounts.tests.test_registration
-python manage.py test accounts.tests.test_registration.RegisterTest.test_post_register_valid_data_return_201
+docker compose exec web python manage.py test
+docker compose exec web python manage.py test accounts.tests.test_registration
+docker compose exec web python manage.py test accounts.tests.test_registration.RegisterTest.test_post_register_valid_data_return_201
 
 # Django Shell (z.B. um E-Mail-Templates ad-hoc zu rendern/prüfen)
-python manage.py shell
+docker compose exec web python manage.py shell
 ```
 
+Hinweis zur `.env`-Regel: `docker compose config` gibt die aufgelösten `.env`-Werte
+aus und darf daher nicht ausgeführt werden.
+
 Formatierung: Black (`.vscode/settings.json` führt es beim Speichern für `[python]` aus).
+
+## Docker-Setup
+
+- `backend.Dockerfile` — Image auf Basis `python:3.14-slim`, installiert
+  `requirements.txt`, läuft als `appuser` (nicht root). `ENTRYPOINT` ist
+  `backend.entrypoint.sh`, `CMD` startet gunicorn (`core.wsgi:application`).
+- `backend.entrypoint.sh` — läuft nur, wenn der Startbefehl `gunicorn` ist
+  (der `worker` überspringt es): `collectstatic`, `migrate`, dann
+  `createsuperuser --noinput` (nur wenn `DJANGO_SUPERUSER_EMAIL` und
+  `DJANGO_SUPERUSER_PASSWORD` gesetzt sind), zuletzt `exec "$@"`.
+- `docker-compose.yml` — Services `web` (gunicorn, Port 8000), `worker`
+  (`python manage.py rqworker default`, gleiches Image), `db` (`postgres:17-alpine`
+  mit Volume `postgres_data` und Healthcheck), `redis` (`redis:7-alpine` mit
+  `--requirepass`). `web` und `worker` warten per `condition: service_healthy`
+  auf `db`. Alle Variablen kommen über `env_file: .env`.
+- In der `.env` müssen `REDIS_HOST=redis` und `DB_HOST=db` stehen (Servicenamen,
+  nicht `localhost`). `DB_*` gelten nur beim ersten Anlegen des Volumes, ebenso
+  der Superuser (Passwortänderung: `docker compose exec web python manage.py changepassword <email>`).
+- Statische Dateien liefert WhiteNoise aus `STATIC_ROOT` (`staticfiles/`, in
+  `.gitignore` und `.dockerignore`).
+- Ausführliche Doku: `/home/philipp/DEV/DEV_Allgemein/!Documentation/Deployment/Docker`.
 
 ## Architektur
 

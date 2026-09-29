@@ -1,0 +1,18 @@
+# Geheimnisse dürfen nie ins Image gelangen
+.env
+
+# Lokale virtuelle Umgebung und Python-Caches (im Image werden Pakete neu installiert)
+.venv
+__pycache__
+*.pyc
+
+# Lokale Entwicklungsdatenbank
+db.sqlite3
+
+# Von collectstatic erzeugter Ordner (wird beim Build im Image neu erzeugt)
+staticfiles/
+
+# Versionsverwaltung und Editor-/Tool-Konfiguration
+.git
+.claude
+.vscode

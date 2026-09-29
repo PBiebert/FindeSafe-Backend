@@ -1,0 +1,69 @@
+# Schritt 2: Django-Webserver, RQ-Worker und Redis gemeinsam starten.
+# Die Datenbank (PostgreSQL) kommt in Schritt 4 dazu.
+
+services:
+  # Django-Anwendung (API)
+  web:
+    # Image aus backend.Dockerfile bauen
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    image: findesafe-be
+    ports:
+      # Host-Port:Container-Port -> API unter http://localhost:8000
+      - "8000:8000"
+    # Alle Variablen aus der .env werden im Container gesetzt.
+    # Wichtig: In der .env muss REDIS_HOST=redis stehen. Im Compose-Netzwerk
+    # erreicht man Redis über den Servicenamen, "localhost" wäre der Container selbst.
+    env_file: .env
+    depends_on:
+      # web startet erst, wenn die Datenbank bereit ist (siehe healthcheck bei db)
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # RQ-Worker: verarbeitet Hintergrund-Jobs (z. B. Versand der Aktivierungs-Mails)
+  worker:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    image: findesafe-be
+    # Anderer Startbefehl auf demselben Image (überschreibt das CMD des Dockerfiles)
+    command: python manage.py rqworker default
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # PostgreSQL: gemeinsame Datenbank für web und worker
+  db:
+    image: postgres:17-alpine
+    # Legt beim ersten Start Datenbank und Benutzer mit den Werten aus der .env an
+    # (Compose ersetzt ${...} automatisch aus der .env im Projektordner).
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      # Benanntes Volume: Daten überleben "docker compose down" und Neustarts
+      - postgres_data:/var/lib/postgresql/data
+    # Meldet "healthy", sobald Postgres Verbindungen annimmt
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Redis: Warteschlange für die Hintergrund-Jobs
+  redis:
+    image: redis:7-alpine
+    # Passwort kommt aus der .env (REDIS_PASSWORD); Compose liest die .env im
+    # Projektordner automatisch für die ${...}-Ersetzung.
+    command: redis-server --requirepass "${REDIS_PASSWORD}"
+
+# Benanntes Volume für die PostgreSQL-Daten
+volumes:
+  postgres_data:
