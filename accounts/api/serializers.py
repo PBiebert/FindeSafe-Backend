@@ -112,9 +112,9 @@ class EmailVerificationSerializer(serializers.Serializer):
 
         return attrs
 
-    def save(self):
-        user = self.validated_data["user"]
+    def create(self, validated_data):
+        user = validated_data["user"]
         user.is_active = True
         user.save(update_fields=["is_active"])
-        self.validated_data["verificationCode"].delete()
+        validated_data["verificationCode"].delete()
         return user
