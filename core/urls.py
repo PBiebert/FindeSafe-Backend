@@ -23,4 +23,7 @@ import accounts
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("accounts.api.urls")),
+    # Dashboard für Django RQ: zeigt laufende, erledigte und fehlgeschlagene
+    # Hintergrund-Jobs (z. B. E-Mail-Versand) an.
+    path("django-rq/", include("django_rq.urls")),
 ]

@@ -4,6 +4,7 @@ from rest_framework.authtoken.views import Response
 from rest_framework.views import APIView
 
 from accounts.api.serializers import EmailVerificationSerializer, RegisterSerializer
+from accounts.api.services import enqueue_activation_email
 from accounts.services import generate_verification_code
 
 User = get_user_model()
@@ -14,7 +15,8 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        generate_verification_code(user)
+        verification_code = generate_verification_code(user)
+        enqueue_activation_email(user.id, verification_code.code)
 
         return Response(
             {"message": "Registrierung erfolgreich"}, status=status.HTTP_201_CREATED

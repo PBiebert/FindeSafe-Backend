@@ -74,6 +74,10 @@ Werte werden vom Entwickler selbst eingepflegt.
 | `EMAIL_HOST_USER`     | SMTP-Benutzer                                                  | –                                                |
 | `EMAIL_HOST_PASSWORD` | SMTP-Passwort                                                  | –                                                |
 | `DEFAULT_FROM_EMAIL`  | Absenderadresse                                                | Wert von `EMAIL_HOST_USER`                       |
+| `REDIS_HOST`          | Host des Redis-Servers (für Django RQ / Hintergrund-Jobs)      | `localhost`                                       |
+| `REDIS_PORT`          | Port des Redis-Servers                                         | `6379`                                            |
+| `REDIS_DB`            | Redis-Datenbank-Index                                          | `0`                                                |
+| `REDIS_PASSWORD`      | Passwort des Redis-Servers                                     | – (leer)                                          |
 
 ## Entwicklung
 
@@ -91,6 +95,10 @@ python manage.py migrate
 
 # Django Shell (z. B. um E-Mail-Templates ad-hoc zu rendern/prüfen)
 python manage.py shell
+
+# RQ-Worker starten (verarbeitet Hintergrund-Jobs, z. B. den Versand der
+# Bestätigungs-E-Mails; benötigt einen laufenden Redis-Server)
+python manage.py rqworker default
 ```
 
 Formatierung: Black (`.vscode/settings.json` führt es beim Speichern für Python-Dateien aus).
@@ -118,6 +126,7 @@ Alle App-Routen liegen unter `/api/` (`core/urls.py` → `accounts/api/urls.py`)
 | `POST`  | `/api/account-verification/`     | `AccountActivateView`        | Kontoaktivierung. Body: `email`, `code`. Max. 3 Fehlversuche, danach wird der Code gelöscht und muss neu angefordert werden. Antwort `200`.                                                          |
 | `POST`  | `/api/resend-verification-code/` | `ResendVerificationCodeView` | Neuen Verifizierungscode anfordern                                                                                                                                                                   |
 | –       | `/admin/`                        | Django Admin                 | Admin-Oberfläche                                                                                                                                                                                     |
+| –       | `/django-rq/`                    | Django RQ                    | Dashboard für Hintergrund-Jobs (laufend/erledigt/fehlgeschlagen)                                                                                                                                     |
 
 ## Projektstruktur
 

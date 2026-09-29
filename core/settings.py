@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "django_rq",
     "accounts.apps.AccountsConfig",
 ]
 
@@ -128,7 +129,9 @@ STATIC_URL = "static/"
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
+)
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
@@ -136,3 +139,16 @@ EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+
+RQ_QUEUES = {
+    "default": {
+        # Host/Port/Passwort des Redis-Servers stammen aus der .env, da sie
+        # sich je nach Umgebung (lokal/Produktion) unterscheiden.
+        "HOST": os.getenv("REDIS_HOST", "localhost"),
+        "PORT": int(os.getenv("REDIS_PORT", "6379")),
+        "DB": int(os.getenv("REDIS_DB", "0")),
+        "PASSWORD": os.getenv("REDIS_PASSWORD", ""),
+        # Timeout in Sekunden, nach dem ein hängender Job als fehlgeschlagen gilt.
+        "DEFAULT_TIMEOUT": 360,
+    },
+}
