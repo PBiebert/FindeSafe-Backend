@@ -43,10 +43,11 @@ pip install -r requirements.txt
 pip freeze > requirements.txt      # nach dem Hinzufügen/Aktualisieren einer Abhängigkeit, danach Image neu bauen
 
 # Starten / Stoppen
-docker compose up --build          # alle Services bauen und starten (liest automatisch docker-compose.override.yml)
+docker compose up --build          # alle Services bauen und starten (lokal inkl. docker-compose.dev.yml über COMPOSE_FILE in der .env)
 docker compose up -d --build       # im Hintergrund
 docker compose restart worker      # nach Änderungen an Jobs/Mail-Code (der Worker lädt nicht automatisch neu)
-docker compose -f docker-compose.yml up --build   # ohne Override, wie in Produktion (Code aus dem Image, kein Reload)
+docker compose -f docker-compose.yml up --build   # ohne Entwicklungsdatei, wie in Produktion (Code aus dem Image, kein Reload)
+docker compose ls                  # zeigt, welche Compose-Dateien aktiv sind (Spalte CONFIG FILES)
 docker compose down                # stoppen, Daten im Volume postgres_data bleiben
 docker compose down -v             # stoppen und Datenbank löschen
 docker compose logs -f web         # Logs (auch: worker, db, redis)
@@ -84,11 +85,13 @@ Formatierung: Black (`.vscode/settings.json` führt es beim Speichern für `[pyt
   mit Volume `postgres_data` und Healthcheck), `redis` (`redis:7-alpine` mit
   `--requirepass`). `web` und `worker` warten per `condition: service_healthy`
   auf `db`. Alle Variablen kommen über `env_file: .env`.
-- `docker-compose.override.yml` — nur lokale Entwicklung, wird von Compose automatisch
-  zusätzlich gelesen: bindet den Projektordner (`.:/app`) in `web` und `worker` ein und
-  startet gunicorn mit `--reload`. Nie in die Hauptdatei übernehmen und in Produktion nicht
-  verwenden. Voraussetzung: `backend.entrypoint.sh` ist auf dem Host ausführbar, Host-UID
-  entspricht `appuser` (1000). `makemigrations` läuft daher direkt auf dem Host-Ordner.
+- `docker-compose.dev.yml` — nur lokale Entwicklung, wird **nicht** automatisch gelesen,
+  sondern lokal über `COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml` in der `.env`
+  geladen (in `.env.template` auskommentiert, auf dem Server nicht gesetzt, dadurch läuft
+  dort sicher nur die Hauptdatei). Bindet den Projektordner (`.:/app`) in `web` und `worker`
+  ein und startet gunicorn mit `--reload`. Nie in die Hauptdatei übernehmen. Voraussetzung:
+  `backend.entrypoint.sh` ist auf dem Host ausführbar, Host-UID entspricht `appuser` (1000).
+  `makemigrations` landet daher direkt im Host-Ordner.
 - In der `.env` müssen `REDIS_HOST=redis` und `DB_HOST=db` stehen (Servicenamen,
   nicht `localhost`). `DB_*` gelten nur beim ersten Anlegen des Volumes, ebenso
   der Superuser (Passwortänderung: `docker compose exec web python manage.py changepassword <email>`).

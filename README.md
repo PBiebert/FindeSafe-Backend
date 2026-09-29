@@ -43,6 +43,11 @@ Das Projekt wird vollständig in Docker entwickelt und betrieben.
      Variable, `#` beginnt einen Kommentar).
    - `REDIS_HOST` muss `redis` und `DB_HOST` muss `db` bleiben (Servicenamen aus
      der `docker-compose.yml`).
+   - **Nur lokal:** Am Ende der `.env` das `#` vor
+     `COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml` entfernen. Damit
+     wird zusätzlich die Entwicklungsdatei geladen (siehe
+     [Codeänderungen ohne Neubau](#codeänderungen-ohne-neubau)). Auf einem Server
+     bleibt die Zeile auskommentiert.
 
 3. Container bauen und starten:
 
@@ -93,6 +98,7 @@ Werte werden vom Entwickler selbst eingepflegt.
 | `DJANGO_SUPERUSER_EMAIL`    | E-Mail des Admin-Users (Login), wird beim Start angelegt             | –                                             |
 | `DJANGO_SUPERUSER_USERNAME` | Username des Admin-Users (Pflichtfeld des User-Modells)              | –                                             |
 | `DJANGO_SUPERUSER_PASSWORD` | Passwort des Admin-Users                                             | –                                             |
+| `COMPOSE_FILE`              | Welche Compose-Dateien gelesen werden (Einstellung für Compose)      | nur `docker-compose.yml`                      |
 
 Hinweise zu einzelnen Variablen:
 
@@ -114,6 +120,9 @@ Hinweise zu einzelnen Variablen:
 - **`DJANGO_SUPERUSER_*`:** Der Admin-Benutzer wird beim ersten Start angelegt,
   Login unter `/admin/` mit E-Mail und Passwort. Ein neues Passwort setzt man
   später mit `docker compose exec web python manage.py changepassword <email>`.
+- **`COMPOSE_FILE`:** Lokal auf `docker-compose.yml:docker-compose.dev.yml`
+  setzen (Entwicklungsmodus). Auf dem Server nicht setzen, dann läuft nur die
+  `docker-compose.yml`. Welche Dateien aktiv sind, zeigt `docker compose ls`.
 
 ## Entwicklung
 
@@ -137,7 +146,7 @@ docker compose down
 docker compose down -v
 ```
 
-- Lokal bindet `docker-compose.override.yml` den Projektordner in die Container
+- Lokal bindet `docker-compose.dev.yml` den Projektordner in die Container
   ein (siehe [Codeänderungen ohne Neubau](#codeänderungen-ohne-neubau)). Ein
   Neubau ist nur nach Änderungen an `requirements.txt` oder am Dockerfile nötig.
 - Die API ist im LAN erreichbar (Port 8000 wird veröffentlicht). Die LAN-IP
@@ -145,9 +154,19 @@ docker compose down -v
 
 ### Codeänderungen ohne Neubau
 
-Die Datei `docker-compose.override.yml` liest Docker Compose bei `docker compose up`
-automatisch zusätzlich zur `docker-compose.yml`. Sie gilt **nur für die lokale
-Entwicklung**, in Produktion wird sie nicht verwendet:
+Die Datei `docker-compose.dev.yml` gilt **nur für die lokale Entwicklung**. Sie
+wird nicht automatisch gelesen, sondern über diese Zeile in der lokalen `.env`
+zusätzlich zur `docker-compose.yml` geladen:
+
+```env
+COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml
+```
+
+Auf dem Server fehlt die Zeile. Dort läuft automatisch nur die
+`docker-compose.yml`, auch wenn die Einstellung vergessen wird. Welche Dateien
+gerade aktiv sind, zeigt `docker compose ls` (Spalte `CONFIG FILES`).
+
+Mit der Entwicklungsdatei gilt:
 
 - Der Projektordner ist als Volume in `web` und `worker` eingebunden. Codeänderungen
   (neue Views, Serializer usw.) sind sofort im Container sichtbar.
@@ -161,7 +180,7 @@ Entwicklung**, in Produktion wird sie nicht verwendet:
   ```
 
 - Neue Migrationsdateien (`makemigrations`) landen direkt im Projektordner auf dem Rechner.
-- Ohne die Override-Datei starten (Code kommt dann aus dem Image, kein Reload,
+- Ohne die Entwicklungsdatei starten (Code kommt dann aus dem Image, kein Reload,
   wie in Produktion):
 
   ```bash
@@ -272,7 +291,7 @@ Alle App-Routen liegen unter `/api/` (`core/urls.py` → `accounts/api/urls.py`)
 ├── backend.Dockerfile     # Image: Python, Abhängigkeiten, Code, Start als appuser
 ├── backend.entrypoint.sh  # Start: collectstatic, migrate, Superuser, dann gunicorn
 ├── docker-compose.yml     # Services: web, worker, db (PostgreSQL), redis
-├── docker-compose.override.yml  # nur lokal: Projektordner einbinden, gunicorn --reload
+├── docker-compose.dev.yml # nur lokal (über COMPOSE_FILE): Projektordner einbinden, gunicorn --reload
 ├── .dockerignore          # Was nicht ins Image kopiert wird (u. a. .env)
 ├── .env.template          # Vorlage der Umgebungsvariablen (Kopie: .env, nicht im Repo)
 ├── manage.py

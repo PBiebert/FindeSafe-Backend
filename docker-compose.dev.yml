@@ -1,8 +1,9 @@
 # Einstellungen nur für die lokale Entwicklung.
-# Docker Compose liest diese Datei bei "docker compose up" automatisch zusätzlich
-# zur docker-compose.yml und überschreibt bzw. ergänzt dort die Einträge.
-# Für die Produktion NICHT verwenden. Ohne diese Datei starten mit:
-#   docker compose -f docker-compose.yml up
+# Diese Datei wird NICHT automatisch gelesen. Lokal wird sie über diese Zeile
+# in der .env zusätzlich zur docker-compose.yml geladen:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml
+# Compose ergänzt bzw. überschreibt dann die Einträge der docker-compose.yml.
+# Auf dem Server fehlt die Zeile, dort läuft automatisch nur die docker-compose.yml.
 
 services:
   web:

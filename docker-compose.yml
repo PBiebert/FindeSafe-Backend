@@ -1,7 +1,8 @@
 # Alle Services des Backends: Django-Webserver (web), RQ-Worker (worker),
 # PostgreSQL (db) und Redis (redis). Diese Datei entspricht dem Stand für die
-# Produktion. Für die lokale Entwicklung liest Compose zusätzlich automatisch
-# die docker-compose.override.yml (Mount des Projektordners, gunicorn --reload).
+# Produktion. Für die lokale Entwicklung wird zusätzlich die docker-compose.dev.yml
+# geladen (Mount des Projektordners, gunicorn --reload), gesteuert über
+# COMPOSE_FILE in der lokalen .env.
 
 services:
   # Django-Anwendung (API)
