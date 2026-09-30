@@ -12,6 +12,11 @@
   },
 
   "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportIndexIssue": "none",
+    "reportOptionalSubscript": "none",
+    "reportAttributeAccessIssue": "none"
+  },
   "python.testing.pytestEnabled": false,
   "python.testing.unittestEnabled": true,
 
@@ -29,12 +34,7 @@
     "**/.venv": true,
     "**/staticfiles": true
   },
-
-  "python.analysis.diagnosticSeverityOverrides": {
-    "reportIndexIssue": "none",
-    "reportOptionalSubscript": "none",
-    "reportAttributeAccessIssue": "none"
-  },
+  "mypy-type-checker.args": ["--ignore-missing-imports"],
 
   "python.analysis.autoImportCompletions": true,
   "python.analysis.indexing": true,
