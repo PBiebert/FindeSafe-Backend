@@ -118,3 +118,29 @@ class EmailVerificationSerializer(serializers.Serializer):
         user.save(update_fields=["is_active"])
         validated_data["verificationCode"].delete()
         return user
+
+
+class ResendVerificationCodeSerializer(serializers.Serializer):
+    """Validiert die Anfrage nach einem neuen Verifizierungscode.
+
+    Vom Frontend (VerifyEmailScreen) kommt ausschließlich die E-Mail-Adresse.
+    Der zugehörige, noch nicht aktivierte Benutzer wird unter
+    ``validated_data["user"]`` für die View bereitgestellt.
+    """
+
+    email = serializers.EmailField()
+
+    def validate(self, attrs):
+        """Sucht den noch inaktiven Benutzer zur E-Mail-Adresse.
+
+        Bewusst dieselbe allgemeine Fehlermeldung für "unbekannte E-Mail" und
+        "bereits aktiviert", damit über den Endpoint nicht herausgefunden
+        werden kann, welche Adressen registriert sind.
+        """
+        try:
+            user = User.objects.get(email=attrs["email"], is_active=False)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Bitte prüfe deine Eingabe")
+
+        attrs["user"] = user
+        return attrs

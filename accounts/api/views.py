@@ -1,10 +1,15 @@
 from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.authtoken.views import Response
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.api.serializers import EmailVerificationSerializer, RegisterSerializer
+from accounts.api.serializers import (
+    EmailVerificationSerializer,
+    RegisterSerializer,
+    ResendVerificationCodeSerializer,
+)
 from accounts.api.services import enqueue_activation_email
+from accounts.models import EmailVerificationCode
 from accounts.services import generate_verification_code
 
 User = get_user_model()
@@ -34,4 +39,13 @@ class AccountActivateView(APIView):
 
 
 class ResendVerificationCodeView(APIView):
-    pass
+    def post(self, request):
+        serializer = ResendVerificationCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        EmailVerificationCode.objects.filter(user=user).delete()
+
+        verification_code = generate_verification_code(user)
+        enqueue_activation_email(user.id, verification_code.code)
+
+        return Response({"message": "Code wurde gesendet"})
