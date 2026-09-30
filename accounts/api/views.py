@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from accounts.api.serializers import (
@@ -39,6 +40,9 @@ class AccountActivateView(APIView):
 
 
 class ResendVerificationCodeView(APIView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "resend_code"
+
     def post(self, request):
         serializer = ResendVerificationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

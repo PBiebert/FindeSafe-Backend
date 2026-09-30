@@ -165,3 +165,10 @@ RQ_QUEUES = {
         "DEFAULT_TIMEOUT": 360,
     },
 }
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_RATES": {
+        "resend_code": "3/hour",
+    },
+}
